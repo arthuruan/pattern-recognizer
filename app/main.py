@@ -54,16 +54,15 @@ def read_images_in_folders(directory, folder_list):
 
 def load_data():
     db_path = root_path + '/database/'
-    grayscale_fold_name = 'grayscale'
+    grayscale_path = db_path + 'grayscale'
 
     # verifying if grayscale exists
-    if not os.path.exists(db_path + grayscale_fold_name):
+    if not os.path.exists(grayscale_path):
         # convert origin images to grey scales
-        convert_images_to_grayscale(directory=db_path + 'raw', output_path=db_path + grayscale_fold_name)
+        convert_images_to_grayscale(directory=db_path + 'raw', output_path=grayscale_path)
 
-    grayscale_folders = get_folder_list(directory=db_path + grayscale_fold_name)
-
-    return read_images_in_folders(directory=db_path + grayscale_fold_name, folder_list=grayscale_folders)
+    grayscale_folders = get_folder_list(directory=grayscale_path)
+    return read_images_in_folders(directory=grayscale_path, folder_list=grayscale_folders)
 
 def main():
     # [ 
