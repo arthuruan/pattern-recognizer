@@ -4,11 +4,6 @@ from PIL import Image
 root_path = os.getcwd()
 
 ### transform all the images in grey scale if it's the first run
-def convert_to_grayscale(image_path):
-    image = Image.open(image_path)
-    grayscale_image = image.convert("L")
-    return grayscale_image
-
 def convert_images_to_grayscale(directory, output_path):
     # Create the output folder if it doesn't exist
     os.makedirs(output_path, exist_ok=True)
@@ -23,7 +18,8 @@ def convert_images_to_grayscale(directory, output_path):
             # Convert each image to grayscale and save in the subfolder
             for image_file in image_files:
                 image_path = os.path.join(path, image_file)
-                grayscale_image = convert_to_grayscale(image_path)
+                image = Image.open(image_path)
+                grayscale_image = image.convert("L")
                 grayscale_image.save(subfolder + '/' + image_file)
 ######
 
