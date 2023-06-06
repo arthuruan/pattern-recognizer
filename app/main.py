@@ -3,26 +3,38 @@ from PIL import Image
 
 root_path = os.getcwd()
 
-# transform all the images in grey scale if it's the first run
+### transform all the images in grey scale if it's the first run
+def convert_to_grayscale(image_path):
+    image = Image.open(image_path)
+    grayscale_image = image.convert("L")
+    return grayscale_image
 
-def get_folder_list(directory):
-    folder_list = []
-    for item in os.listdir(directory):
-        if os.path.isdir(os.path.join(directory, item)):
-            folder_list.append(item)
-    return folder_list
+def convert_images_to_grayscale(directory, output_path):
+    # Create the output folder if it doesn't exist
+    os.makedirs(output_path, exist_ok=True)
+    for folder in os.listdir(directory):
+        path = os.path.join(directory, folder)
+        if os.path.isdir(path):
+            # Get the list of image files in the current folder
+            image_files = [file for file in os.listdir(path) if file.lower().endswith(('.png'))]
+            # Create a subfolder in the output folder
+            subfolder = os.path.join(output_path, folder)
+            os.makedirs(subfolder, exist_ok=True)
+            # Convert each image to grayscale and save in the subfolder
+            for image_file in image_files:
+                image_path = os.path.join(path, image_file)
+                grayscale_image = convert_to_grayscale(image_path)
+                grayscale_image.save(subfolder + '/' + image_file)
+######
 
 def load_data():
     db_path = root_path + '/database/'
-    grey_scale_fold_name = 'grey_scale'
+    grayscale_fold_name = 'grayscale'
 
-    # verifying if grey_scale exists
-    if not os.path.exists(db_path + grey_scale_fold_name):
+    # verifying if grayscale exists
+    if not os.path.exists(db_path + grayscale_fold_name):
         # convert origin images to grey scales
-        folders = get_folder_list(db_path + 'raw')
-        for folder in folders:
-            print(folder)
-        print('false')
+        convert_images_to_grayscale(directory=db_path + 'raw', output_path=db_path + grayscale_fold_name)
 
     return 'data'
 
