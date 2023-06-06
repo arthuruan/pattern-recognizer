@@ -31,9 +31,9 @@ def convert_images_to_grayscale(directory, output_path):
 
 ## TODO: rename this class
 class Item:
-    def __init__(self, path, name, bin_value, type):
+    def __init__(self, path, folder_name, bin_value, type):
         self.path = path
-        self.name = name
+        self.folder_name = folder_name
         self.bin_value = bin_value
         self.type = type # [idle, training, validation]
 
@@ -47,7 +47,7 @@ def read_images_in_folders(directory, folder_list):
                 with open(file_path, 'rb') as image_file:
                     iris_list = []
                     value = image_file.read()
-                    item = Item(path=file_path, name=folder, bin_value=value, type='idle')
+                    item = Item(path=file_path, folder_name=folder, bin_value=value, type='idle')
                     iris_list.append(item)
         list.append(iris_list)
     return list
@@ -69,7 +69,7 @@ def main():
     list = load_data()
 
     ###### TODO: split the list array between training (N - 1) and validation (1) for each class (IRIS)
-    print(list[0][0].name)
+    print(list[0][0].folder_name)
     print(list[0][0].path)
     print(list[0][0].type)
     # print(list[0][0].bin_value)
