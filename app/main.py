@@ -66,12 +66,16 @@ def load_data():
     return read_images_in_folders(directory=db_path + grayscale_fold_name, folder_list=grayscale_folders)
 
 def main():
-    list = load_data()
+    # [ 
+    #     [ { folder_name, path, type, bin_value }, { folder_name, path, type, bin_value }, ... ] ,     # each item is an iris's folder
+    #     [ { ... }, { ... }, ... ] 
+    # ]
+    data = load_data() 
 
     ###### TODO: split the list array between training (N - 1) and validation (1) for each class (IRIS)
-    print(list[0][0].folder_name)
-    print(list[0][0].path)
-    print(list[0][0].type)
-    # print(list[0][0].bin_value)
+    print(data[0][0].folder_name)
+    print(data[0][0].path)
+    print(data[0][0].type)
+    # print(data[0][0].bin_value)
 
 main()
