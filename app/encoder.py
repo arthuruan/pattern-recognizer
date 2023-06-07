@@ -1,9 +1,9 @@
 def encoder(k, data_list, dictionary = None):
+    has_dictionary = not dictionary
+
     maximum_table_size = pow(2, int(k))
 
-    isClassification = not dictionary
-
-    if (isClassification):
+    if (has_dictionary):
         dictionary_size = 256
         dictionary = {chr(i): i for i in range(dictionary_size)}
     string = ""
@@ -16,7 +16,7 @@ def encoder(k, data_list, dictionary = None):
                 string = string_plus_symbol
             else:
                 compressed_data.append(dictionary[string])
-                if(not isClassification and len(dictionary) <= maximum_table_size):
+                if(has_dictionary and len(dictionary) <= maximum_table_size):
                     dictionary[string_plus_symbol] = dictionary_size
                     dictionary_size += 1
                 string = chr(symbol)

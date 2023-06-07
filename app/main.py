@@ -32,7 +32,6 @@ def convert_images_to_grayscale(directory, output_path):
             grayscale_image = image.convert("L")
             grayscale_image.save(subfolder + '/' + image_file)
 
-## TODO: rename this class
 class Item:
     def __init__(self, path, folder_name, bin_value, type):
         self.path = path
@@ -102,15 +101,35 @@ def run_training(k, training):
 
     return dictionaries
 
+## validation
+def run_validation(k, dictionaries, validation):
+    result = []
+    for item_validation in validation:
+        data_list = []
+        for item in item_validation:
+            data_list.append(item.bin_value)
+            encoded_validation = { item.folder_name: [] }
+            for dictionary in dictionaries:
+                for key in dictionary.keys():
+                    if dictionary[key]:
+                        _, compressed_data = encoder(k, data_list, dictionary[key])
+                        encoded_validation[item.folder_name].append(compressed_data)
+            result.append(encoded_validation)
+
+    ## TODO: get each compressed_data and saves as binary file
+    return result
+
+
 def main():
-    # [ 
-    #     [ { folder_name, path, type, bin_value }, { folder_name, path, type, bin_value }, ... ] ,     # each item is an iris's folder
-    #     [ { ... }, { ... }, ... ] 
+    # [
+    #     [ { folder_name, path, type, bin_value }, { folder_name, path, type, bin_value }, ... ], # each item is an iris's folder
+    #     [ { ... }, { ... }, ... ]
     # ]
     data = load_data()
     training, validation = split_data(data)
 
     k = input('Digite o valor de K: ')
     dictionaries = run_training(k, training)
+    result = run_validation(k, dictionaries, validation)
 
 main()
