@@ -6,6 +6,7 @@ from PIL import Image
 from encoder import encoder
 
 root_path = os.getcwd()
+db_path = f"{root_path}/database"
 
 def get_folder_list(directory):
     folder_list = []
@@ -31,7 +32,7 @@ def convert_images_to_grayscale(directory, output_path):
             image_path = os.path.join(path, image_file)
             image = Image.open(image_path)
             grayscale_image = image.convert("L")
-            grayscale_image.save(subfolder + '/' + image_file)
+            grayscale_image.save(f"{subfolder}/{image_file}")
 
 class Item:
     def __init__(self, path, folder_name, bin_value, type):
@@ -56,13 +57,12 @@ def read_images_in_folders(directory, folder_list):
     return list
 
 def load_data():
-    db_path = root_path + '/database/'
-    grayscale_path = db_path + 'grayscale'
+    grayscale_path = f"{db_path}/grayscale"
 
     # verifying if grayscale exists
     if not os.path.exists(grayscale_path):
         # convert origin images to grey scales
-        convert_images_to_grayscale(directory=db_path + 'raw', output_path=grayscale_path)
+        convert_images_to_grayscale(directory=f"{db_path}/raw", output_path=grayscale_path)
 
     grayscale_folders = get_folder_list(directory=grayscale_path)
     return read_images_in_folders(directory=grayscale_path, folder_list=grayscale_folders)
@@ -104,26 +104,45 @@ def run_training(k, training):
 
 ## model
 def create_model(k, dictionaries, classificiation):
-    models_path = root_path + '/database/models/'
-    result = []
+    models_path =  f"{db_path}/models"
     os.makedirs(models_path, exist_ok=True)
     for item_classificiation in classificiation:
         data_list = []
         for item in item_classificiation:
-            os.makedirs(models_path + item.folder_name, exist_ok=True)
+            os.makedirs(f"{models_path}/{item.folder_name}", exist_ok=True)
             data_list.append(item.bin_value)
             encoded_validation = { item.folder_name: [] }
             for dictionary in dictionaries:
                 for key in dictionary.keys():
                     if dictionary[key]:
-                        class_path = models_path + item.folder_name + '/'
+
                         _, compressed_data = encoder(k, data_list, dictionary[key])
                         # write compressed data in a binary file
-                        with open(class_path + key + '.bin', 'wb') as file:
+                        with open(f"{models_path}/{item.folder_name}/{key}.bin", 'wb') as file:
                             # pack the integer array into binary format using the struct module
                             binary_data = struct.pack('>' + 'i'*len(compressed_data), *compressed_data)
                             # write the binary data to the file
                             file.write(binary_data)
+
+## validation
+def run_validation():
+    models_path = f"{db_path}/models"
+    result = []
+
+    for class_name in os.listdir(models_path):
+        class_path = os.path.join(models_path, class_name)
+        sizes = []
+        for item in os.listdir(class_path):
+            file_path = os.path.join(class_path, item)
+            size = os.path.getsize(file_path)
+            sizes.append({ 'name': item, 'size': size })
+
+        min_size = min(sizes, key=lambda x: x['size'])
+        result.append({ class_name: class_name, 'is_valid': min_size['name'] == class_name + '.bin' })
+
+    count = sum(1 for d in result if d['is_valid'])
+
+    return result, count
 
 def main():
     # [
@@ -137,5 +156,7 @@ def main():
     dictionaries = run_training(k, training)
     create_model(k, dictionaries, classificiation)
 
+    _, valid_count = run_validation()
+    print(valid_count)
 
 main()
