@@ -1,7 +1,8 @@
 import os
 import random
-from PIL import Image
+import struct
 
+from PIL import Image
 from encoder import encoder
 
 root_path = os.getcwd()
@@ -66,26 +67,26 @@ def load_data():
     grayscale_folders = get_folder_list(directory=grayscale_path)
     return read_images_in_folders(directory=grayscale_path, folder_list=grayscale_folders)
 
-# CHOOSE ONE RANDOM IMAGE FROM EACH FOLDER TO BE VALIDATION DATA AND THE REST TO BE TRAINING DATA
+# CHOOSE ONE RANDOM IMAGE FROM EACH FOLDER TO BE CLASSIFICATION DATA AND THE REST TO BE TRAINING DATA
 def split_data(data):
     training_data = []
-    validation_data = []
+    classification_data = []
     n_files_in_folder = len(data[0])
     for idx, iris in enumerate(data):
         iris_training_data = []
-        iris_validation_data = []
+        iris_classification_data = []
         random_number = random.randint(0, (n_files_in_folder - 1))
         for index, item in enumerate(iris):
-            if index == random_number or (index == (len(iris) - 1) and len(iris_validation_data) == 0):
-                item.type = 'validation'
-                iris_validation_data.append(item)
+            if index == random_number or (index == (len(iris) - 1) and len(iris_classification_data) == 0):
+                item.type = 'classification'
+                iris_classification_data.append(item)
             else:
                 item.type = 'training'
                 iris_training_data.append(item)
         training_data.append(iris_training_data)
-        validation_data.append(iris_validation_data)
+        classification_data.append(iris_classification_data)
 
-    return training_data, validation_data
+    return training_data, classification_data
 
 ## training
 def run_training(k, training):
@@ -101,24 +102,28 @@ def run_training(k, training):
 
     return dictionaries
 
-## validation
-def run_validation(k, dictionaries, validation):
+## model
+def create_model(k, dictionaries, classificiation):
+    models_path = root_path + '/database/models/'
     result = []
-    for item_validation in validation:
+    os.makedirs(models_path, exist_ok=True)
+    for item_classificiation in classificiation:
         data_list = []
-        for item in item_validation:
+        for item in item_classificiation:
+            os.makedirs(models_path + item.folder_name, exist_ok=True)
             data_list.append(item.bin_value)
             encoded_validation = { item.folder_name: [] }
             for dictionary in dictionaries:
                 for key in dictionary.keys():
                     if dictionary[key]:
+                        class_path = models_path + item.folder_name + '/'
                         _, compressed_data = encoder(k, data_list, dictionary[key])
-                        encoded_validation[item.folder_name].append(compressed_data)
-            result.append(encoded_validation)
-
-    ## TODO: get each compressed_data and saves as binary file
-    return result
-
+                        # write compressed data in a binary file
+                        with open(class_path + key + '.bin', 'wb') as file:
+                            # pack the integer array into binary format using the struct module
+                            binary_data = struct.pack('>' + 'i'*len(compressed_data), *compressed_data)
+                            # write the binary data to the file
+                            file.write(binary_data)
 
 def main():
     # [
@@ -126,10 +131,11 @@ def main():
     #     [ { ... }, { ... }, ... ]
     # ]
     data = load_data()
-    training, validation = split_data(data)
+    training, classificiation = split_data(data)
 
     k = input('Digite o valor de K: ')
     dictionaries = run_training(k, training)
-    result = run_validation(k, dictionaries, validation)
+    create_model(k, dictionaries, classificiation)
+
 
 main()
